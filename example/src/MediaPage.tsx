@@ -72,6 +72,7 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
   const screenHeight = Dimensions.get('window').height;
   const [cropUri, setCropUri] = useState('');
   const [text, setText] = useState('');
+  const isIOS = Platform.OS === 'ios';
 
   const onSavePressed = useCallback(async () => {
     try {
@@ -83,26 +84,48 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
         return;
       }
       console.log(`file ban dau = file://${path}`);
-      // await CameraRoll.save(`file://${path}`, {
-      //   type: type,
-      // });
+      await CameraRoll.save(`file://${path}`, {
+        type: type,
+      });
       if (type === 'photo') {
         const imageSize: any = await getImageSize(`file://${path}`);
         const imageWidth = imageSize?.width || 0;
         const imageHeight = imageSize?.height || 0;
+        console.log('imageWidth = ', imageWidth);
+        console.log('imageHeight = ', imageHeight);
+        console.log('screenWidth = ', screenWidth);
+        console.log('screenHeight = ', screenHeight);
 
-        const cropData: ImageCropData = {
+        const cropDataIos: ImageCropData = {
           offset: {x: imageWidth / 4, y: imageHeight / 4},
           size: {width: imageWidth / 2, height: imageHeight / 2},
-          displaySize: {width: screenWidth / 2, height: screenHeight / 2},
-          resizeMode: 'contain',
+          displaySize: {width: imageWidth / 2, height: imageHeight / 2},//{width: screenWidth / 2, height: screenHeight / 2},
+          resizeMode: 'cover',
         };
+        const cropDataAndroid: ImageCropData = {
+          offset: {x: imageWidth / 2, y: imageHeight / 2},
+          size: {width: imageWidth, height: imageHeight},
+          displaySize: {width: imageWidth, height: imageHeight},
+          resizeMode: 'cover',
+        };
+        const cropData: ImageCropData = isIOS ? cropDataIos : cropDataAndroid;
+        // const cropData: ImageCropData = {
+        //   offset: {x: 0, y: 0},
+        //   size: {width: imageWidth * 2, height: imageHeight * 2},
+        //   displaySize: {width: imageWidth * 2, height: imageHeight * 2},
+        //   resizeMode: 'cover',
+        // };
         const uri = await ImageEditor.cropImage(`file://${path}`, cropData);
         console.log("Cropped image uri = ", uri);
         setCropUri(uri);
-        // const file = await CameraRoll.save(url, {
-        //   type: type,
-        // });
+        const file = await CameraRoll.save(uri, {
+          type: type,
+        });
+        const imageSize2: any = await getImageSize(file);
+        const imageWidth2 = imageSize2?.width || 0;
+        const imageHeight2 = imageSize2?.height || 0;
+        console.log('imageWidth2 = ', imageWidth2);
+        console.log('imageHeight2 = ', imageHeight2);
         // console.log('Save file sau khi crop = ', file);
 
         // await timeout(1000);
@@ -132,6 +155,18 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
     <View style={[styles.container, screenStyle]}>
       {type === 'photo' && (
         <Image source={source} style={StyleSheet.absoluteFill} resizeMode="cover" onLoadEnd={onMediaLoadEnd} onLoad={onMediaLoad} />
+      )}
+      {type === 'photo' && cropUri.length > 0 && (
+        <Image style={[StyleSheet.absoluteFill, {
+          position: 'absolute',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderWidth: 1,
+          borderColor: 'red'
+        }]}
+        source={{ uri: cropUri}}
+        resizeMode="cover"
+         />
       )}
       {type === 'photo' && (
         <View style={{

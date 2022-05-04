@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useRef, useState, useMemo, useCallback } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { PinchGestureHandler, PinchGestureHandlerGestureEvent, TapGestureHandler } from 'react-native-gesture-handler';
 import {
   CameraDeviceFormat,
@@ -207,6 +207,9 @@ export function CameraPage({ navigation }: Props): React.ReactElement {
     console.log(`Suggestion available! ${suggestion.type}: Can do ${suggestion.suggestedFrameProcessorFps} FPS`);
   }, []);
 
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+
   return (
     <View style={styles.container}>
       {device != null && (
@@ -238,7 +241,24 @@ export function CameraPage({ navigation }: Props): React.ReactElement {
           </Reanimated.View>
         </PinchGestureHandler>
       )}
-
+      {/* <View style={{
+        width: screenWidth,
+        height: screenHeight,
+        position: 'absolute'
+      }}> */}
+        <View style={{
+            position: 'absolute',
+            left: screenWidth / 4,
+            top: screenHeight / 4,
+            width: screenWidth / 2,
+            height: screenHeight / 2,
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: 'red'
+          }}
+        />
+      {/* </View> */}
       <CaptureButton
         style={styles.captureButton}
         camera={camera}

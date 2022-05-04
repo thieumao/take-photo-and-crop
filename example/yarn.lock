@@ -4524,6 +4524,11 @@ react-native-gesture-handler@^1.10.3:
     invariant "^2.2.4"
     prop-types "^15.7.2"
 
+react-native-mlkit-ocr@^0.2.5:
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/react-native-mlkit-ocr/-/react-native-mlkit-ocr-0.2.5.tgz#0161e9d33508a68b938a5a37f027db18938cd57a"
+  integrity sha512-g8CTgGx5dT5pgnPDw1W33Oa9PZYg10nYd+KuHTjpbJdkqxfWXcoUl/A4vOsPJDz1UM06YnOu7XRSgSXSIAGhjA==
+
 react-native-pressable-opacity@^1.0.4:
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/react-native-pressable-opacity/-/react-native-pressable-opacity-1.0.8.tgz#1dcd0d4ad38c32f2235793635a8d85fcd414c5c2"

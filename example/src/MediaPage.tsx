@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, StyleSheet, View, Image, ActivityIndicator, PermissionsAndroid, Platform } from 'react-native';
+import { Dimensions, Text, StyleSheet, View, Image, ActivityIndicator, PermissionsAndroid, Platform } from 'react-native';
 import Video, { LoadError, OnLoadData } from 'react-native-video';
 import { SAFE_AREA_PADDING } from './Constants';
 import { useIsForeground } from './hooks/useIsForeground';
@@ -14,6 +14,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { Routes } from './Routes';
 import { useIsFocused } from '@react-navigation/core';
 import ImageEditor, { ImageCropData } from "@react-native-community/image-editor";
+import MlkitOcr from 'react-native-mlkit-ocr';
 
 const requestSavePermission = async (): Promise<boolean> => {
   if (Platform.OS !== 'android') return true;
@@ -63,8 +64,14 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
     });
   });
 
+  const timeout = (ms: any) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
+  const [cropUri, setCropUri] = useState('');
+  const [text, setText] = useState('');
 
   const onSavePressed = useCallback(async () => {
     try {
@@ -75,11 +82,12 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
         Alert.alert('Permission denied!', 'Vision Camera does not have permission to save the media to your camera roll.');
         return;
       }
-      await CameraRoll.save(`file://${path}`, {
-        type: type,
-      });
+      console.log(`file ban dau = file://${path}`);
+      // await CameraRoll.save(`file://${path}`, {
+      //   type: type,
+      // });
       if (type === 'photo') {
-        const imageSize = await getImageSize(`file://${path}`);
+        const imageSize: any = await getImageSize(`file://${path}`);
         const imageWidth = imageSize?.width || 0;
         const imageHeight = imageSize?.height || 0;
 
@@ -89,11 +97,23 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
           displaySize: {width: screenWidth / 2, height: screenHeight / 2},
           resizeMode: 'contain',
         };
-        const url = await ImageEditor.cropImage(`file://${path}`, cropData);
-        console.log("Cropped image uri", url);
-        await CameraRoll.save(url, {
-          type: type,
-        });
+        const uri = await ImageEditor.cropImage(`file://${path}`, cropData);
+        console.log("Cropped image uri = ", uri);
+        setCropUri(uri);
+        // const file = await CameraRoll.save(url, {
+        //   type: type,
+        // });
+        // console.log('Save file sau khi crop = ', file);
+
+        // await timeout(1000);
+        const resultFromFile = await MlkitOcr.detectFromUri(uri);
+        // console.log('MlkitOcr with resultFromFile = ', resultFromFile);
+        if (resultFromFile) {
+          const nextText = resultFromFile.map((item: any) => item?.text || '').join('\n');
+          console.log('nextText = ', nextText);
+          setText(nextText);
+        }
+    
       }
 
       setSavingState('saved');
@@ -112,6 +132,31 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
     <View style={[styles.container, screenStyle]}>
       {type === 'photo' && (
         <Image source={source} style={StyleSheet.absoluteFill} resizeMode="cover" onLoadEnd={onMediaLoadEnd} onLoad={onMediaLoad} />
+      )}
+      {type === 'photo' && (
+        <View style={{
+          width: screenWidth / 2,
+          height: screenHeight / 2,
+          position: 'absolute',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderWidth: 1,
+          borderColor: 'red'
+        }} />
+      )}
+      {type === 'photo' && text.length > 0 && (
+        <Text style={{
+          width: screenWidth / 2,
+          height: screenHeight / 2,
+          position: 'absolute',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderWidth: 1,
+          borderColor: 'red',
+          textAlign: 'center'
+        }}>
+          {text}
+        </Text>
       )}
       {type === 'video' && (
         <Video

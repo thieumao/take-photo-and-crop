@@ -96,8 +96,13 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
         console.log('width = ', width);
         console.log('height = ', height);
 
+        const {StatusBarManager} = NativeModules;
+        let padding = 0;
+        if (!isIOS && width !=  (imageSize?.width)) {
+          padding = StatusBarManager.HEIGHT * imageHeight / screenHeight / 2;
+        }
         const cropDataAndroid: ImageCropData = {
-          offset: {x: imageWidth / 4, y: imageHeight / 4},
+          offset: {x: imageWidth / 4, y: imageHeight / 4 - padding},
           size: {width: imageWidth / 2, height: imageHeight / 2},
           displaySize: {width: imageWidth / 2, height: imageHeight / 2},//{width: screenWidth / 2, height: screenHeight / 2},
           resizeMode: 'cover',
@@ -113,8 +118,8 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
         const imageSize2: any = await getImageSize(file);
         const imageWidth2 = imageSize2?.width || 0;
         const imageHeight2 = imageSize2?.height || 0;
-        console.log('imageWidth2 = ', imageWidth2);
-        console.log('imageHeight2 = ', imageHeight2);
+        // console.log('imageWidth2 = ', imageWidth2);
+        // console.log('imageHeight2 = ', imageHeight2);
         // console.log('Save file sau khi crop = ', file);
 
         // await timeout(1000);
@@ -145,9 +150,8 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
   // const top = isIOS ? screenHeight / 4 : screenHeight / 4// + StatusBarManager.HEIGHT / 2;
   return (
     <View style={[styles.container, screenStyle]}>
-      <StatusBar hidden />
       {type === 'photo' && (
-        <Image source={source} style={{ opacity: 0.7, width: screenWidth, height: screenHeight }} resizeMode="cover" onLoadEnd={onMediaLoadEnd} onLoad={onMediaLoad} />
+        <Image source={source} style={{ opacity: 0.7, width: '100%', height: '100%' }} resizeMode="cover" onLoadEnd={onMediaLoadEnd} onLoad={onMediaLoad} />
       )}
       {type === 'photo' && cropUri.length > 0 && (
         <Image style={[{
@@ -233,10 +237,12 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    // flex: 1,
+    width: '100%',
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
+    // backgroundColor: 'white',
   },
   closeButton: {
     position: 'absolute',

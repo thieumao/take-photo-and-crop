@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useRef, useState, useMemo, useCallback } from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { NativeModules, Platform, Dimensions, StyleSheet, Text, View } from 'react-native';
 import { PinchGestureHandler, PinchGestureHandlerGestureEvent, TapGestureHandler } from 'react-native-gesture-handler';
 import {
   CameraDeviceFormat,
@@ -142,6 +142,8 @@ export function CameraPage({ navigation }: Props): React.ReactElement {
       navigation.navigate('MediaPage', {
         path: media.path,
         type: type,
+        width: media?.width || 0,
+        height: media?.height || 0,
       });
     },
     [navigation],
@@ -209,7 +211,9 @@ export function CameraPage({ navigation }: Props): React.ReactElement {
 
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
-
+  const isIOS = Platform.OS === 'ios';
+  // const {StatusBarManager} = NativeModules;
+  // const top = isIOS ? screenHeight / 4 : screenHeight / 4// + StatusBarManager.HEIGHT / 2;
   return (
     <View style={styles.container}>
       {device != null && (
@@ -220,7 +224,7 @@ export function CameraPage({ navigation }: Props): React.ReactElement {
                 ref={camera}
                 style={StyleSheet.absoluteFill}
                 device={device}
-                format={format}
+                // format={format}
                 fps={fps}
                 hdr={enableHdr}
                 lowLightBoost={device.supportsLowLightBoost && enableNightMode}
@@ -246,7 +250,9 @@ export function CameraPage({ navigation }: Props): React.ReactElement {
         height: screenHeight,
         position: 'absolute'
       }}> */}
-        <View style={{
+        <View
+          pointerEvents="none"
+          style={{
             position: 'absolute',
             left: screenWidth / 4,
             top: screenHeight / 4,

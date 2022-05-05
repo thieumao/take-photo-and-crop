@@ -4,5 +4,7 @@ export type Routes = {
   MediaPage: {
     path: string;
     type: 'video' | 'photo';
+    width: number;
+    height: number;
   };
 };

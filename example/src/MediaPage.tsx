@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, Text, StyleSheet, View, Image, ActivityIndicator, PermissionsAndroid, Platform } from 'react-native';
+import { SafeAreaView, StatusBar, NativeModules, Dimensions, Text, StyleSheet, View, Image, ActivityIndicator, PermissionsAndroid, Platform } from 'react-native';
 import Video, { LoadError, OnLoadData } from 'react-native-video';
 import { SAFE_AREA_PADDING } from './Constants';
 import { useIsForeground } from './hooks/useIsForeground';
@@ -34,7 +34,7 @@ const isVideoOnLoadEvent = (event: OnLoadData | NativeSyntheticEvent<ImageLoadEv
 
 type Props = NativeStackScreenProps<Routes, 'MediaPage'>;
 export function MediaPage({ navigation, route }: Props): React.ReactElement {
-  const { path, type } = route.params;
+  const { path, type, width, height } = route.params;
   const [hasMediaLoaded, setHasMediaLoaded] = useState(false);
   const isForeground = useIsForeground();
   const isScreenFocused = useIsFocused();
@@ -89,32 +89,21 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
       });
       if (type === 'photo') {
         const imageSize: any = await getImageSize(`file://${path}`);
-        const imageWidth = imageSize?.width || 0;
-        const imageHeight = imageSize?.height || 0;
-        console.log('imageWidth = ', imageWidth);
-        console.log('imageHeight = ', imageHeight);
-        console.log('screenWidth = ', screenWidth);
-        console.log('screenHeight = ', screenHeight);
+        const imageWidth = isIOS ? (imageSize?.width || 0) : width;
+        const imageHeight = isIOS ? (imageSize?.height || 0) : height;
+        console.log('imageSize?.width = ', imageSize?.width);
+        console.log('imageSize?.height = ', imageSize?.height);
+        console.log('width = ', width);
+        console.log('height = ', height);
 
-        const cropDataIos: ImageCropData = {
+        const cropDataAndroid: ImageCropData = {
           offset: {x: imageWidth / 4, y: imageHeight / 4},
           size: {width: imageWidth / 2, height: imageHeight / 2},
           displaySize: {width: imageWidth / 2, height: imageHeight / 2},//{width: screenWidth / 2, height: screenHeight / 2},
           resizeMode: 'cover',
         };
-        const cropDataAndroid: ImageCropData = {
-          offset: {x: imageWidth / 2, y: imageHeight / 2},
-          size: {width: imageWidth, height: imageHeight},
-          displaySize: {width: imageWidth, height: imageHeight},
-          resizeMode: 'cover',
-        };
-        const cropData: ImageCropData = isIOS ? cropDataIos : cropDataAndroid;
-        // const cropData: ImageCropData = {
-        //   offset: {x: 0, y: 0},
-        //   size: {width: imageWidth * 2, height: imageHeight * 2},
-        //   displaySize: {width: imageWidth * 2, height: imageHeight * 2},
-        //   resizeMode: 'cover',
-        // };
+        const cropData: ImageCropData = cropDataAndroid; //isIOS ? cropDataIos : cropDataAndroid;
+
         const uri = await ImageEditor.cropImage(`file://${path}`, cropData);
         console.log("Cropped image uri = ", uri);
         setCropUri(uri);
@@ -151,18 +140,26 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
 
   const screenStyle = useMemo(() => ({ opacity: hasMediaLoaded ? 1 : 0 }), [hasMediaLoaded]);
 
+  // const needFullStyle = isIOS ? StyleSheet.absoluteFill : {};
+  // const {StatusBarManager} = NativeModules;
+  // const top = isIOS ? screenHeight / 4 : screenHeight / 4// + StatusBarManager.HEIGHT / 2;
   return (
     <View style={[styles.container, screenStyle]}>
+      <StatusBar hidden />
       {type === 'photo' && (
-        <Image source={source} style={StyleSheet.absoluteFill} resizeMode="cover" onLoadEnd={onMediaLoadEnd} onLoad={onMediaLoad} />
+        <Image source={source} style={{ opacity: 0.7, width: screenWidth, height: screenHeight }} resizeMode="cover" onLoadEnd={onMediaLoadEnd} onLoad={onMediaLoad} />
       )}
       {type === 'photo' && cropUri.length > 0 && (
-        <Image style={[StyleSheet.absoluteFill, {
+        <Image style={[{
           position: 'absolute',
+          left: screenWidth / 4,
+          top: screenHeight / 4,
+          width: screenWidth / 2,
+          height: screenHeight / 2,
           justifyContent: 'center',
           alignItems: 'center',
-          borderWidth: 1,
-          borderColor: 'red'
+          // borderWidth: 1,
+          // borderColor: 'red'
         }]}
         source={{ uri: cropUri}}
         resizeMode="cover"
@@ -170,9 +167,11 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
       )}
       {type === 'photo' && (
         <View style={{
+          position: 'absolute',
+          left: screenWidth / 4,
+          top: screenHeight / 4,
           width: screenWidth / 2,
           height: screenHeight / 2,
-          position: 'absolute',
           justifyContent: 'center',
           alignItems: 'center',
           borderWidth: 1,
@@ -181,14 +180,17 @@ export function MediaPage({ navigation, route }: Props): React.ReactElement {
       )}
       {type === 'photo' && text.length > 0 && (
         <Text style={{
+          position: 'absolute',
+          left: screenWidth / 4,
+          top: screenHeight / 4,
           width: screenWidth / 2,
           height: screenHeight / 2,
-          position: 'absolute',
           justifyContent: 'center',
           alignItems: 'center',
-          borderWidth: 1,
-          borderColor: 'red',
-          textAlign: 'center'
+          // borderWidth: 1,
+          // borderColor: 'red',
+          textAlign: 'center',
+          color: 'yellow'
         }}>
           {text}
         </Text>
